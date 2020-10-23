@@ -1,0 +1,33 @@
+#!/bin/bash
+filename=$1
+
+echo "$filename" | awk -F" - |\\\." '
+  {
+    printf("PERFORMER \"%s\"\nTITLE \"%s\"\nFILE \"%s - %s.flac\" WAVE\n",$1,$2,$1,$2)
+  }' #> "${filename%%.*}.cue"
+cat "$filename" | awk -F" [1-9] | [1-9][0-9] | \\\"|\\\" |\\\#|\\\*" '
+  BEGIN {
+    count=1;
+    index0[0]=index0[1]=index0[2]=0;
+  }
+  /MARKER/ {
+    m=int($2/60);
+    s=int($2-(m*60));
+    f=int(($2-int($2))*75);
+    if (length($4)==0) {
+      index0[0]=m;
+      index0[1]=s;
+      index0[2]=f;
+    } else {
+      if (length(index0) != 0) {
+        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n",count,$4,m,s,f);
+        printf("     INDEX 00 %02d:%02d:%02d\n",index0[0],index0[1],index0[2]);
+        printf("     INDEX 01 %02d:%02d:%02d\n",m,s,f);
+        delete index0[0];delete index0[1];delete index0[2];
+      } else {
+        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n     INDEX 01 %02d:%02d:%02d\n",count,$4,m,s,f);
+        delete index0[0];delete index0[1];delete index0[2];
+      }
+    }
+    count+=1
+  }' #>> "${filename%%.*}.cue"

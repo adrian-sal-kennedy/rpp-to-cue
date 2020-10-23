@@ -1,0 +1,39 @@
+#!/bin/bash
+file=$1
+cat "$file" | awk -F"( )+|:" '
+  BEGIN {
+    inpoint=0;
+    track=0;
+    outpoint=0;
+  }
+  /FILE/ {
+    split($0,file,"\"");
+    split($0,ext,/[".]/);
+    (ext[3]=="flac")? codec="flac" : codec="copy";
+  }
+  /TITLE/ {
+    if(track!=0){
+      split($0,tracktitle,"\"");
+    } else {
+      split($0,album,"\"");
+    }
+  }
+  /TRACK / {
+    track=$3;
+  }
+  /INDEX 01/ {
+    if(track==1){
+      outpoint=($4*60)+$5+($6/75);
+      inpoint=outpoint
+      title=tracktitle[2];
+    } else {
+      outpoint=($4*60)+$5+($6/75);
+      printf("ffmpeg -nostdin -n -i \"%s\" -ss %s -to %s -c: %s \"%02d - %s.%s\"\n",file[2],inpoint,outpoint,codec,(track-1),title,ext[3]);
+      inpoint=outpoint
+    }
+  }
+  END {
+    outpoint=($4*60)+$5+($6/75);
+    printf("ffmpeg -nostdin -n -i \"%s\" -ss %s -c: %s \"%02d - %s.%s\"\n",file[2],inpoint,codec,track,title,ext[3]);
+    inpoint=outpoint
+}'
