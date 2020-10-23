@@ -35,3 +35,7 @@ cue-split "my-cuefile.cue" ["alternate-source-audio.mp3"]
 Run without a second argument it will read the "FILE" line and grab the input filename from there. Make sure it's in the right place, as with any cue file.
 
 Run it with a second argument and that will override the file specified in the cue. A use case here is chopping an already compressed file by the cue sheet for the original uncompressed audio.
+
+## To do
+- It would be reasonably simple to have ffmpeg write tags to the output files based on the artist, album and title fields.
+- Some cuesheets also have replaygain info written in REM lines which I could read, translate and apply as a tag to the output files too.
