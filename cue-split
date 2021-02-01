@@ -45,6 +45,7 @@ cat "$file" | awk "BEGIN {
       outpoint=($4*60)+$5+($6/75);
       printf("ffmpeg -nostdin -n -i \"%s\" -ss %s -to %s -c: %s \"%02d - %s.%s\"\n",file,inpoint,outpoint,codec,(track-1),title,ext[3]);
       inpoint=outpoint
+      title=tracktitle[2];
     }
   }
   END {
