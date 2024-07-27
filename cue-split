@@ -43,13 +43,13 @@ cat "$file" | awk "BEGIN {
       title=tracktitle[2];
     } else {
       outpoint=($4*60)+$5+($6/75);
-      printf("ffmpeg -nostdin -n -i \"%s\" -ss %s -to %s -c: %s \"%02d - %s.%s\"\n",file,inpoint,outpoint,codec,(track-1),title,ext[3]);
+      printf("ffmpeg -nostdin -y -i \"%s\" -ss %s -to %s -c: copy -c:a %s \"%02d - %s.%s\"\n",file,inpoint,outpoint,codec,(track-1),title,ext[3]);
       inpoint=outpoint
       title=tracktitle[2];
     }
   }
   END {
     outpoint=($4*60)+$5+($6/75);
-    printf("ffmpeg -nostdin -n -i \"%s\" -ss %s -c: %s \"%02d - %s.%s\"\n",file,inpoint,codec,track,title,ext[3]);
+    printf("ffmpeg -nostdin -y -i \"%s\" -ss %s -c: copy -c:a %s \"%02d - %s.%s\"\n",file,inpoint,codec,track,title,ext[3]);
     inpoint=outpoint
 }'

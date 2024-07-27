@@ -8,6 +8,7 @@ echo "$filename" | awk -F" - |\\\." '
 cat "$filename" | awk -F" [1-9] | [1-9][0-9] | \\\"|\\\" |\\\#|\\\*" '
   BEGIN {
     count=1;
+    leadin="     INDEX 00 00:00:00"
     index0[0]=index0[1]=index0[2]=0;
   }
   /MARKER/ {
@@ -19,15 +20,13 @@ cat "$filename" | awk -F" [1-9] | [1-9][0-9] | \\\"|\\\" |\\\#|\\\*" '
       index0[1]=s;
       index0[2]=f;
     } else {
-      if (length(index0) != 0) {
-        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n",count,$4,m,s,f);
-        printf("     INDEX 00 %02d:%02d:%02d\n",index0[0],index0[1],index0[2]);
-        printf("     INDEX 01 %02d:%02d:%02d\n",m,s,f);
+      if ($4 ~ /^B.$/) {
+        leadin=sprintf("     INDEX 00 %02d:%02d:%02d",m,s,f);
         delete index0[0];delete index0[1];delete index0[2];
       } else {
-        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n     INDEX 01 %02d:%02d:%02d\n",count,$4,m,s,f);
+        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n%s\n     INDEX 01 %02d:%02d:%02d\n",count,$4,leadin,m,s,f);
         delete index0[0];delete index0[1];delete index0[2];
+        count+=1
       }
     }
-    count+=1
   }' 2>/dev/null #>> "${filename%%.*}.cue"
