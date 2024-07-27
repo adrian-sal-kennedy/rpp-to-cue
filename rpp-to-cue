@@ -1,32 +1,30 @@
 #!/bin/bash
+# set -x
 filename=$1
-
 echo "$filename" | awk -F" - |\\\." '
   {
     printf("PERFORMER \"%s\"\nTITLE \"%s\"\nFILE \"%s - %s.flac\" WAVE\n",$1,$2,$1,$2)
   }' #> "${filename%%.*}.cue"
-cat "$filename" | awk -F" [1-9] | [1-9][0-9] | \\\"|\\\" |\\\#|\\\*" '
+
+cat "$filename" | awk -F'["*]' '
   BEGIN {
     count=1;
     leadin="     INDEX 00 00:00:00"
     index0[0]=index0[1]=index0[2]=0;
   }
   /MARKER/ {
-    m=int($2/60);
-    s=int($2-(m*60));
-    f=int(($2-int($2))*75);
-    if (length($4)==0) {
-      index0[0]=m;
-      index0[1]=s;
-      index0[2]=f;
-    } else {
-      if ($4 ~ /^B.$/) {
+    split($1,arr,/[ ]/);
+    time=arr[5];
+    m=int(time/60);
+    s=int(time-(m*60));
+    f=int((time-int(time))*75);
+    split($2,arr,/[#]/);
+    title=arr[2];
+
+    if(length(title)==0){
         leadin=sprintf("     INDEX 00 %02d:%02d:%02d",m,s,f);
-        delete index0[0];delete index0[1];delete index0[2];
-      } else {
-        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n%s\n     INDEX 01 %02d:%02d:%02d\n",count,$4,leadin,m,s,f);
-        delete index0[0];delete index0[1];delete index0[2];
-        count+=1
-      }
+    } else {
+        printf("  TRACK %02d AUDIO\n    TITLE \"%s\"\n%s\n     INDEX 01 %02d:%02d:%02d\n",count,title,leadin,m,s,f);
+        count+=1;
     }
-  }' 2>/dev/null #>> "${filename%%.*}.cue"
+}'
